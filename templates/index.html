@@ -1,135 +1,164 @@
 <!DOCTYPE html>
-<html lang="pt-br" class="light">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ranking de Depositantes - AsafeBroker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    
     * {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Poppins', sans-serif;
     }
 
     .gradient-bg {
-      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
     }
 
     .card-shadow {
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     }
 
     .card-shadow-lg {
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
 
     .trophy-gold {
       background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
       color: #92400e;
+      box-shadow: 0 8px 16px rgba(255, 215, 0, 0.3);
     }
 
     .trophy-silver {
-      background: linear-gradient(135deg, #c0c0c0 0%, #e5e7eb 100%);
+      background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
       color: #374151;
+      box-shadow: 0 8px 16px rgba(209, 213, 219, 0.3);
     }
 
     .trophy-bronze {
-      background: linear-gradient(135deg, #cd7f32 0%, #d97706 100%);
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
       color: #92400e;
+      box-shadow: 0 8px 16px rgba(245, 158, 11, 0.3);
     }
 
     .animate-fade-in {
-      animation: fadeIn 0.6s ease-out forwards;
+      animation: fadeIn 0.8s ease-out forwards;
     }
 
     .animate-slide-up {
-      animation: slideUp 0.8s ease-out forwards;
+      animation: slideUp 1s ease-out forwards;
     }
 
     .animate-scale-in {
-      animation: scaleIn 0.5s ease-out forwards;
+      animation: scaleIn 0.6s ease-out forwards;
+    }
+
+    .animate-bounce-in {
+      animation: bounceIn 0.8s ease-out forwards;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
+      from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes slideUp {
-      from { opacity: 0; transform: translateY(40px); }
+      from { opacity: 0; transform: translateY(50px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes scaleIn {
-      from { opacity: 0; transform: scale(0.9); }
+      from { opacity: 0; transform: scale(0.8); }
       to { opacity: 1; transform: scale(1); }
     }
 
-    .loading-shimmer {
-      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-      background-size: 200% 100%;
-      animation: shimmer 2s infinite;
-    }
-
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
+    @keyframes bounceIn {
+      0% { opacity: 0; transform: scale(0.3); }
+      50% { opacity: 1; transform: scale(1.05); }
+      70% { transform: scale(0.9); }
+      100% { opacity: 1; transform: scale(1); }
     }
 
     .rank-number {
-      font-weight: 700;
-      font-size: 1.5rem;
+      font-weight: 800;
+      font-size: 1.75rem;
       line-height: 1;
     }
 
     .podium-card {
-      transition: all 0.3s ease;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(255, 255, 255, 0.8);
     }
 
     .podium-card:hover {
-      transform: translateY(-4px);
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
     }
 
     .stats-card {
-      background: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .stats-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    /* Dark mode styles */
-    html.dark {
-      background-color: #0f172a;
-      color: #e2e8f0;
+    .ranking-row {
+      transition: all 0.2s ease;
     }
 
-    html.dark .gradient-bg {
-      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    .ranking-row:hover {
+      background: linear-gradient(90deg, #f8fafc 0%, #ffffff 100%);
+      transform: translateX(4px);
     }
 
-    html.dark .stats-card {
-      background: rgba(30, 41, 59, 0.8);
-      border: 1px solid rgba(51, 65, 85, 0.3);
+    .position-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 0.875rem;
     }
 
-    html.dark .bg-white { background-color: #1e293b; color: #e2e8f0; }
-    html.dark .text-gray-900 { color: #e2e8f0; }
-    html.dark .text-gray-700 { color: #cbd5e0; }
-    html.dark .text-gray-600 { color: #a0aec0; }
-    html.dark .text-gray-500 { color: #718096; }
-    html.dark .border-gray-200 { border-color: #4a5568; }
-    html.dark .bg-gray-50 { background-color: #2d3748; }
-    html.dark .bg-gray-100 { background-color: #4a5568; }
+    .top-3 {
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+
+    .loading-pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
   </style>
 </head>
 
 <body class="gradient-bg min-h-screen">
   <!-- Loading Indicator -->
-  <div id="loadingIndicator" class="fixed inset-0 bg-white bg-opacity-90 dark:bg-gray-900 dark:bg-opacity-90 flex items-center justify-center z-50">
+  <div id="loadingIndicator" class="fixed inset-0 bg-white bg-opacity-95 flex items-center justify-center z-50">
     <div class="flex flex-col items-center">
-      <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-      <p class="mt-4 text-gray-600 dark:text-gray-400 font-medium">Carregando ranking...</p>
+      <div class="w-16 h-16 border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin"></div>
+      <p class="mt-6 text-gray-600 font-semibold text-lg loading-pulse">Carregando ranking...</p>
     </div>
   </div>
 
@@ -137,84 +166,85 @@
     <div class="max-w-7xl mx-auto">
       
       <!-- Header -->
-      <div class="text-center mb-12 animate-fade-in">
-        <div class="flex items-center justify-between mb-6">
-          <a href="/" class="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
+      <div class="text-center mb-16 animate-fade-in">
+        <div class="flex items-center justify-center mb-8">
+          <a href="/" class="flex items-center gap-3 text-gray-500 hover:text-gray-700 transition-colors font-medium">
             <i data-lucide="arrow-left" class="w-5 h-5"></i>
             <span>Voltar ao Dashboard</span>
           </a>
-          
-          <button id="themeToggle" class="p-3 rounded-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 card-shadow">
-            <i data-lucide="sun" class="w-5 h-5 light-icon"></i>
-            <i data-lucide="moon" class="w-5 h-5 dark-icon hidden"></i>
-          </button>
         </div>
         
-        <div class="mb-8">
-          <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            🏆 Ranking de Depositantes
+        <div class="mb-12">
+          <h1 class="text-5xl md:text-6xl font-bold text-gray-800 mb-6 tracking-tight">
+            🏆 <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Ranking</span> de Depositantes
           </h1>
-          <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Os maiores investidores da AsafeBroker no período selecionado
+          <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Os <strong>Top 10</strong> maiores investidores da AsafeBroker no período selecionado
           </p>
         </div>
 
         <!-- Period Filter -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 card-shadow max-w-md mx-auto">
-          <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Período de Análise</h3>
-          <div class="grid grid-cols-2 gap-4">
+        <div class="glass-effect rounded-3xl p-8 card-shadow-lg max-w-lg mx-auto">
+          <h3 class="text-xl font-bold mb-6 text-gray-800 flex items-center justify-center gap-2">
+            <i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i>
+            Período de Análise
+          </h3>
+          <div class="grid grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Início</label>
-              <input type="date" id="startDate" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <label class="block text-sm font-semibold text-gray-700 mb-3">Data Início</label>
+              <input type="date" id="startDate" class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Fim</label>
-              <input type="date" id="endDate" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <label class="block text-sm font-semibold text-gray-700 mb-3">Data Fim</label>
+              <input type="date" id="endDate" class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
             </div>
           </div>
-          <button id="updateRanking" class="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+          <button id="updateRanking" class="w-full mt-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-6 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+            <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
             Atualizar Ranking
           </button>
         </div>
       </div>
 
       <!-- Statistics Cards -->
-      <div id="statisticsCards" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 animate-slide-up">
+      <div id="statisticsCards" class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 animate-slide-up">
         <!-- Cards will be inserted here -->
       </div>
 
       <!-- Podium Section -->
-      <div class="mb-16 animate-scale-in">
-        <h2 class="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">🥇 Pódio dos Campeões</h2>
+      <div class="mb-20 animate-scale-in">
+        <h2 class="text-4xl font-bold text-center text-gray-800 mb-16 tracking-tight">
+          🥇 <span class="bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">Pódio</span> dos Campeões
+        </h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto" id="podiumSection">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto" id="podiumSection">
           <!-- Podium cards will be inserted here -->
         </div>
       </div>
 
-      <!-- Full Ranking Table -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl card-shadow-lg overflow-hidden animate-fade-in">
-        <div class="p-8 border-b border-gray-200 dark:border-gray-700">
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <i data-lucide="list" class="w-6 h-6 text-blue-600"></i>
-            Ranking Completo
+      <!-- Top 10 Ranking Table -->
+      <div class="glass-effect rounded-3xl card-shadow-lg overflow-hidden animate-bounce-in">
+        <div class="p-10 border-b border-gray-100">
+          <h2 class="text-3xl font-bold text-gray-800 flex items-center gap-4 mb-3">
+            <i data-lucide="trophy" class="w-8 h-8 text-yellow-500"></i>
+            Top 10 Ranking
           </h2>
-          <p class="text-gray-600 dark:text-gray-400 mt-2">Todos os depositantes ordenados por valor total</p>
+          <p class="text-gray-600 text-lg">Os 10 maiores depositantes ordenados por valor total investido</p>
         </div>
         
         <div class="overflow-x-auto">
           <table class="w-full">
-            <thead class="bg-gray-50 dark:bg-gray-700">
+            <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
               <tr>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Posição</th>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Investidor</th>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">País</th>
-                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">Total Depositado</th>
-                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">Nº Depósitos</th>
-                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">Média por Depósito</th>
+                <th class="px-8 py-6 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">Posição</th>
+                <th class="px-8 py-6 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">Investidor</th>
+                <th class="px-8 py-6 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">País</th>
+                <th class="px-8 py-6 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">Total Depositado</th>
+                <th class="px-8 py-6 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">Nº Depósitos</th>
+                <th class="px-8 py-6 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">Média por Depósito</th>
               </tr>
             </thead>
-            <tbody id="rankingTableBody" class="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody id="rankingTableBody" class="divide-y divide-gray-100">
               <!-- Table rows will be inserted here -->
             </tbody>
           </table>
@@ -227,36 +257,6 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
-
-      // Theme management
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      document.documentElement.classList.add(savedTheme);
-      updateThemeIcons();
-
-      function updateThemeIcons() {
-        const lightIcon = document.querySelector('.light-icon');
-        const darkIcon = document.querySelector('.dark-icon');
-        if (document.documentElement.classList.contains('dark')) {
-          lightIcon.classList.add('hidden');
-          darkIcon.classList.remove('hidden');
-        } else {
-          lightIcon.classList.remove('hidden');
-          darkIcon.classList.add('hidden');
-        }
-      }
-
-      document.getElementById('themeToggle').addEventListener('click', () => {
-        if (document.documentElement.classList.contains('light')) {
-          document.documentElement.classList.remove('light');
-          document.documentElement.classList.add('dark');
-          localStorage.setItem('theme', 'dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-          document.documentElement.classList.add('light');
-          localStorage.setItem('theme', 'light');
-        }
-        updateThemeIcons();
-      });
 
       // Date initialization
       const today = new Date().toISOString().split('T')[0];
@@ -282,7 +282,7 @@
           const data = await response.json();
           renderStatistics(data.statistics);
           renderPodium(data.ranking);
-          renderFullRanking(data.ranking);
+          renderTop10Ranking(data.ranking);
           
         } catch (error) {
           console.error('Erro ao buscar dados do ranking:', error);
@@ -295,28 +295,28 @@
       function renderStatistics(stats) {
         const container = document.getElementById('statisticsCards');
         container.innerHTML = `
-          <div class="stats-card rounded-2xl p-6 text-center">
-            <div class="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full mx-auto mb-4">
-              <i data-lucide="dollar-sign" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i>
+          <div class="stats-card rounded-2xl p-8 text-center">
+            <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl mx-auto mb-6">
+              <i data-lucide="dollar-sign" class="w-8 h-8 text-blue-600"></i>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">US$ ${stats.total_deposited.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</h3>
-            <p class="text-gray-600 dark:text-gray-400">Total Depositado</p>
+            <h3 class="text-3xl font-bold text-gray-800 mb-3">US$ ${stats.total_deposited.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</h3>
+            <p class="text-gray-600 font-medium">Total Depositado</p>
           </div>
           
-          <div class="stats-card rounded-2xl p-6 text-center">
-            <div class="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full mx-auto mb-4">
-              <i data-lucide="trending-up" class="w-6 h-6 text-green-600 dark:text-green-400"></i>
+          <div class="stats-card rounded-2xl p-8 text-center">
+            <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl mx-auto mb-6">
+              <i data-lucide="trending-up" class="w-8 h-8 text-green-600"></i>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">${stats.total_deposits.toLocaleString('pt-BR')}</h3>
-            <p class="text-gray-600 dark:text-gray-400">Total de Depósitos</p>
+            <h3 class="text-3xl font-bold text-gray-800 mb-3">${stats.total_deposits.toLocaleString('pt-BR')}</h3>
+            <p class="text-gray-600 font-medium">Total de Depósitos</p>
           </div>
           
-          <div class="stats-card rounded-2xl p-6 text-center">
-            <div class="flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full mx-auto mb-4">
-              <i data-lucide="users" class="w-6 h-6 text-purple-600 dark:text-purple-400"></i>
+          <div class="stats-card rounded-2xl p-8 text-center">
+            <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl mx-auto mb-6">
+              <i data-lucide="users" class="w-8 h-8 text-purple-600"></i>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">${stats.total_users.toLocaleString('pt-BR')}</h3>
-            <p class="text-gray-600 dark:text-gray-400">Investidores Ativos</p>
+            <h3 class="text-3xl font-bold text-gray-800 mb-3">${stats.total_users.toLocaleString('pt-BR')}</h3>
+            <p class="text-gray-600 font-medium">Investidores Ativos</p>
           </div>
         `;
         lucide.createIcons();
@@ -326,54 +326,50 @@
         const container = document.getElementById('podiumSection');
         
         if (ranking.length === 0) {
-          container.innerHTML = '<p class="text-center text-gray-500 col-span-2">Nenhum dado encontrado para o período selecionado.</p>';
+          container.innerHTML = '<p class="text-center text-gray-500 col-span-3 text-xl">Nenhum dado encontrado para o período selecionado.</p>';
           return;
         }
 
         const first = ranking[0];
         const second = ranking[1];
+        const third = ranking[2];
 
         let podiumHTML = '';
 
         // First Place
         if (first) {
           podiumHTML += `
-            <div class="podium-card bg-white dark:bg-gray-800 rounded-3xl p-8 card-shadow-lg relative overflow-hidden">
-              <div class="absolute top-0 right-0 w-24 h-24 trophy-gold rounded-full -mr-12 -mt-12 opacity-20"></div>
+            <div class="podium-card bg-white rounded-3xl p-8 card-shadow-lg relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-32 h-32 trophy-gold rounded-full -mr-16 -mt-16 opacity-20"></div>
               <div class="relative z-10">
-                <div class="flex items-center justify-between mb-6">
-                  <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 trophy-gold rounded-full flex items-center justify-center">
-                      <span class="rank-number">1</span>
-                    </div>
-                    <div>
-                      <h3 class="text-xl font-bold text-gray-900 dark:text-white">🥇 Primeiro Lugar</h3>
-                      <p class="text-gray-600 dark:text-gray-400">Campeão dos Investimentos</p>
-                    </div>
+                <div class="text-center mb-8">
+                  <div class="w-20 h-20 trophy-gold rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="rank-number text-white">1</span>
                   </div>
-                  <i data-lucide="crown" class="w-8 h-8 text-yellow-500"></i>
+                  <h3 class="text-2xl font-bold text-gray-800 mb-2">🥇 Primeiro Lugar</h3>
+                  <p class="text-gray-600 font-medium">Campeão dos Investimentos</p>
                 </div>
                 
-                <div class="space-y-4">
-                  <div>
-                    <h4 class="text-2xl font-bold text-gray-900 dark:text-white">${first.name}</h4>
-                    <p class="text-gray-600 dark:text-gray-400">${first.email}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-500">${first.country || 'N/A'}</p>
+                <div class="space-y-6">
+                  <div class="text-center">
+                    <h4 class="text-2xl font-bold text-gray-800 mb-1">${first.name}</h4>
+                    <p class="text-gray-600 mb-1">${first.email}</p>
+                    <p class="text-sm text-gray-500 font-medium">${first.country || 'N/A'}</p>
                   </div>
                   
-                  <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div class="grid grid-cols-2 gap-4 pt-6 border-t border-gray-100">
                     <div class="text-center">
-                      <p class="text-2xl font-bold text-green-600 dark:text-green-400">US$ ${first.total_amount.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
-                      <p class="text-sm text-gray-600 dark:text-gray-400">Total Depositado</p>
+                      <p class="text-2xl font-bold text-green-600 mb-1">US$ ${first.total_amount.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                      <p class="text-sm text-gray-600 font-medium">Total Depositado</p>
                     </div>
                     <div class="text-center">
-                      <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">${first.deposit_count}</p>
-                      <p class="text-sm text-gray-600 dark:text-gray-400">Depósitos</p>
+                      <p class="text-2xl font-bold text-blue-600 mb-1">${first.deposit_count}</p>
+                      <p class="text-sm text-gray-600 font-medium">Depósitos</p>
                     </div>
                   </div>
                   
-                  <div class="text-center pt-2">
-                    <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                  <div class="text-center pt-4 border-t border-gray-100">
+                    <p class="text-lg font-bold text-gray-700">
                       Média: US$ ${(first.total_amount / first.deposit_count).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                     </p>
                   </div>
@@ -386,43 +382,81 @@
         // Second Place
         if (second) {
           podiumHTML += `
-            <div class="podium-card bg-white dark:bg-gray-800 rounded-3xl p-8 card-shadow-lg relative overflow-hidden">
-              <div class="absolute top-0 right-0 w-24 h-24 trophy-silver rounded-full -mr-12 -mt-12 opacity-20"></div>
+            <div class="podium-card bg-white rounded-3xl p-8 card-shadow-lg relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-32 h-32 trophy-silver rounded-full -mr-16 -mt-16 opacity-20"></div>
               <div class="relative z-10">
-                <div class="flex items-center justify-between mb-6">
-                  <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 trophy-silver rounded-full flex items-center justify-center">
-                      <span class="rank-number">2</span>
-                    </div>
-                    <div>
-                      <h3 class="text-xl font-bold text-gray-900 dark:text-white">🥈 Segundo Lugar</h3>
-                      <p class="text-gray-600 dark:text-gray-400">Vice-Campeão</p>
-                    </div>
+                <div class="text-center mb-8">
+                  <div class="w-20 h-20 trophy-silver rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="rank-number text-white">2</span>
                   </div>
-                  <i data-lucide="medal" class="w-8 h-8 text-gray-400"></i>
+                  <h3 class="text-2xl font-bold text-gray-800 mb-2">🥈 Segundo Lugar</h3>
+                  <p class="text-gray-600 font-medium">Vice-Campeão</p>
                 </div>
                 
-                <div class="space-y-4">
-                  <div>
-                    <h4 class="text-2xl font-bold text-gray-900 dark:text-white">${second.name}</h4>
-                    <p class="text-gray-600 dark:text-gray-400">${second.email}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-500">${second.country || 'N/A'}</p>
+                <div class="space-y-6">
+                  <div class="text-center">
+                    <h4 class="text-2xl font-bold text-gray-800 mb-1">${second.name}</h4>
+                    <p class="text-gray-600 mb-1">${second.email}</p>
+                    <p class="text-sm text-gray-500 font-medium">${second.country || 'N/A'}</p>
                   </div>
                   
-                  <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div class="grid grid-cols-2 gap-4 pt-6 border-t border-gray-100">
                     <div class="text-center">
-                      <p class="text-2xl font-bold text-green-600 dark:text-green-400">US$ ${second.total_amount.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
-                      <p class="text-sm text-gray-600 dark:text-gray-400">Total Depositado</p>
+                      <p class="text-2xl font-bold text-green-600 mb-1">US$ ${second.total_amount.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                      <p class="text-sm text-gray-600 font-medium">Total Depositado</p>
                     </div>
                     <div class="text-center">
-                      <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">${second.deposit_count}</p>
-                      <p class="text-sm text-gray-600 dark:text-gray-400">Depósitos</p>
+                      <p class="text-2xl font-bold text-blue-600 mb-1">${second.deposit_count}</p>
+                      <p class="text-sm text-gray-600 font-medium">Depósitos</p>
                     </div>
                   </div>
                   
-                  <div class="text-center pt-2">
-                    <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                  <div class="text-center pt-4 border-t border-gray-100">
+                    <p class="text-lg font-bold text-gray-700">
                       Média: US$ ${(second.total_amount / second.deposit_count).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        // Third Place
+        if (third) {
+          podiumHTML += `
+            <div class="podium-card bg-white rounded-3xl p-8 card-shadow-lg relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-32 h-32 trophy-bronze rounded-full -mr-16 -mt-16 opacity-20"></div>
+              <div class="relative z-10">
+                <div class="text-center mb-8">
+                  <div class="w-20 h-20 trophy-bronze rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="rank-number text-white">3</span>
+                  </div>
+                  <h3 class="text-2xl font-bold text-gray-800 mb-2">🥉 Terceiro Lugar</h3>
+                  <p class="text-gray-600 font-medium">Terceiro Colocado</p>
+                </div>
+                
+                <div class="space-y-6">
+                  <div class="text-center">
+                    <h4 class="text-2xl font-bold text-gray-800 mb-1">${third.name}</h4>
+                    <p class="text-gray-600 mb-1">${third.email}</p>
+                    <p class="text-sm text-gray-500 font-medium">${third.country || 'N/A'}</p>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-4 pt-6 border-t border-gray-100">
+                    <div class="text-center">
+                      <p class="text-2xl font-bold text-green-600 mb-1">US$ ${third.total_amount.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                      <p class="text-sm text-gray-600 font-medium">Total Depositado</p>
+                    </div>
+                    <div class="text-center">
+                      <p class="text-2xl font-bold text-blue-600 mb-1">${third.deposit_count}</p>
+                      <p class="text-sm text-gray-600 font-medium">Depósitos</p>
+                    </div>
+                  </div>
+                  
+                  <div class="text-center pt-4 border-t border-gray-100">
+                    <p class="text-lg font-bold text-gray-700">
+                      Média: US$ ${(third.total_amount / third.deposit_count).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                     </p>
                   </div>
                 </div>
@@ -435,58 +469,67 @@
         lucide.createIcons();
       }
 
-      function renderFullRanking(ranking) {
+      function renderTop10Ranking(ranking) {
         const tbody = document.getElementById('rankingTableBody');
         
         if (ranking.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Nenhum dado encontrado para o período selecionado.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" class="px-8 py-12 text-center text-gray-500 text-lg">Nenhum dado encontrado para o período selecionado.</td></tr>';
           return;
         }
 
-        tbody.innerHTML = ranking.map((user, index) => {
+        // Pegar apenas os top 10
+        const top10 = ranking.slice(0, 10);
+
+        tbody.innerHTML = top10.map((user, index) => {
           const position = index + 1;
           let positionDisplay = position.toString();
-          let positionClass = 'text-gray-600 dark:text-gray-400';
+          let positionClass = 'bg-gray-100 text-gray-700';
+          let rowClass = 'ranking-row';
           
           if (position === 1) {
-            positionDisplay = '🥇 1º';
-            positionClass = 'text-yellow-600 font-bold';
+            positionDisplay = '1';
+            positionClass = 'trophy-gold text-white top-3';
+            rowClass += ' bg-gradient-to-r from-yellow-50 to-orange-50';
           } else if (position === 2) {
-            positionDisplay = '🥈 2º';
-            positionClass = 'text-gray-500 font-bold';
+            positionDisplay = '2';
+            positionClass = 'trophy-silver text-white top-3';
+            rowClass += ' bg-gradient-to-r from-gray-50 to-slate-50';
           } else if (position === 3) {
-            positionDisplay = '🥉 3º';
-            positionClass = 'text-yellow-700 font-bold';
+            positionDisplay = '3';
+            positionClass = 'trophy-bronze text-white top-3';
+            rowClass += ' bg-gradient-to-r from-orange-50 to-amber-50';
           }
 
           const average = user.total_amount / user.deposit_count;
           
           return `
-            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <td class="px-6 py-4">
-                <span class="${positionClass} font-semibold">${positionDisplay}</span>
-              </td>
-              <td class="px-6 py-4">
-                <div>
-                  <div class="font-semibold text-gray-900 dark:text-white">${user.name}</div>
-                  <div class="text-sm text-gray-600 dark:text-gray-400">${user.email}</div>
+            <tr class="${rowClass}">
+              <td class="px-8 py-6">
+                <div class="position-badge ${positionClass}">
+                  ${positionDisplay}
                 </div>
               </td>
-              <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                ${user.country || 'N/A'}
+              <td class="px-8 py-6">
+                <div>
+                  <div class="font-bold text-gray-800 text-lg mb-1">${user.name}</div>
+                  <div class="text-sm text-gray-600">${user.email}</div>
+                </div>
               </td>
-              <td class="px-6 py-4 text-right">
-                <span class="font-bold text-green-600 dark:text-green-400">
+              <td class="px-8 py-6">
+                <span class="font-medium text-gray-700">${user.country || 'N/A'}</span>
+              </td>
+              <td class="px-8 py-6 text-right">
+                <span class="font-bold text-green-600 text-lg">
                   US$ ${user.total_amount.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                 </span>
               </td>
-              <td class="px-6 py-4 text-right">
-                <span class="font-semibold text-blue-600 dark:text-blue-400">
+              <td class="px-8 py-6 text-right">
+                <span class="font-bold text-blue-600 text-lg">
                   ${user.deposit_count}
                 </span>
               </td>
-              <td class="px-6 py-4 text-right">
-                <span class="text-gray-700 dark:text-gray-300">
+              <td class="px-8 py-6 text-right">
+                <span class="font-semibold text-gray-700 text-lg">
                   US$ ${average.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                 </span>
               </td>
