@@ -1,380 +1,223 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" class="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ranking de Depósitos - AsafeBroker</title>
+  <title>Ranking de Depositantes - AsafeBroker</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* Paleta branca sofisticada */
-    :root {
-      --white: #ffffff;
-      --off-white: #fefefe;
-      --light-gray: #f8f9fa;
-      --medium-gray: #e9ecef;
-      --border-gray: #dee2e6;
-      --text-primary: #212529;
-      --text-secondary: #6c757d;
-      --text-muted: #adb5bd;
-      --shadow-light: rgba(0, 0, 0, 0.05);
-      --shadow-medium: rgba(0, 0, 0, 0.1);
-      --shadow-strong: rgba(0, 0, 0, 0.15);
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'Inter', sans-serif;
     }
 
-    body {
-      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      color: var(--text-primary);
+    .gradient-bg {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     }
 
-    /* Animações minimalistas */
-    @keyframes fadeInUp {
+    .card-shadow {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-shadow-lg {
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .trophy-gold {
+      background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+      color: #92400e;
+    }
+
+    .trophy-silver {
+      background: linear-gradient(135deg, #c0c0c0 0%, #e5e7eb 100%);
+      color: #374151;
+    }
+
+    .trophy-bronze {
+      background: linear-gradient(135deg, #cd7f32 0%, #d97706 100%);
+      color: #92400e;
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+
+    .animate-slide-up {
+      animation: slideUp 0.8s ease-out forwards;
+    }
+
+    .animate-scale-in {
+      animation: scaleIn 0.5s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     @keyframes scaleIn {
-      from { opacity: 0; transform: scale(0.95); }
+      from { opacity: 0; transform: scale(0.9); }
       to { opacity: 1; transform: scale(1); }
     }
 
+    .loading-shimmer {
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
+    }
+
     @keyframes shimmer {
-      0% { background-position: -200px 0; }
-      100% { background-position: calc(200px + 100%) 0; }
-    }
-
-    .fade-in { animation: fadeInUp 0.6s ease-out forwards; }
-    .scale-in { animation: scaleIn 0.4s ease-out forwards; }
-    
-    .shimmer {
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-      background-size: 200px 100%;
-      animation: shimmer 1.5s infinite;
-    }
-
-    /* Cards sofisticados */
-    .card {
-      background: var(--white);
-      border: 1px solid var(--border-gray);
-      border-radius: 16px;
-      box-shadow: 0 4px 20px var(--shadow-light);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .card:hover {
-      box-shadow: 0 8px 40px var(--shadow-medium);
-      transform: translateY(-2px);
-    }
-
-    .card-elevated {
-      box-shadow: 0 8px 32px var(--shadow-medium);
-    }
-
-    /* Pódio minimalista */
-    .podium-first {
-      background: linear-gradient(145deg, #ffffff, #f8f9fa);
-      border: 2px solid var(--border-gray);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .podium-first::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #e9ecef, #dee2e6, #e9ecef);
-    }
-
-    .podium-second, .podium-third {
-      background: var(--off-white);
-      border: 1px solid var(--border-gray);
-    }
-
-    /* Inputs minimalistas */
-    .input-minimal {
-      background: var(--white);
-      border: 1px solid var(--border-gray);
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-size: 14px;
-      transition: all 0.2s ease;
-      color: var(--text-primary);
-    }
-
-    .input-minimal:focus {
-      outline: none;
-      border-color: var(--text-secondary);
-      box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.1);
-    }
-
-    /* Botões minimalistas */
-    .btn-minimal {
-      background: var(--text-primary);
-      color: var(--white);
-      border: none;
-      border-radius: 12px;
-      padding: 12px 24px;
-      font-weight: 500;
-      font-size: 14px;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-
-    .btn-minimal:hover {
-      background: var(--text-secondary);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px var(--shadow-medium);
-    }
-
-    .btn-outline {
-      background: transparent;
-      color: var(--text-primary);
-      border: 1px solid var(--border-gray);
-    }
-
-    .btn-outline:hover {
-      background: var(--light-gray);
-      border-color: var(--text-secondary);
-    }
-
-    /* Loading minimalista */
-    .loading-dots {
-      display: inline-flex;
-      gap: 4px;
-    }
-
-    .loading-dots div {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--text-muted);
-      animation: loading-bounce 1.4s ease-in-out infinite both;
-    }
-
-    .loading-dots div:nth-child(1) { animation-delay: -0.32s; }
-    .loading-dots div:nth-child(2) { animation-delay: -0.16s; }
-
-    @keyframes loading-bounce {
-      0%, 80%, 100% { transform: scale(0); }
-      40% { transform: scale(1); }
-    }
-
-    /* Ranking items */
-    .rank-item {
-      background: var(--white);
-      border: 1px solid var(--border-gray);
-      border-radius: 12px;
-      padding: 20px;
-      transition: all 0.2s ease;
-    }
-
-    .rank-item:hover {
-      border-color: var(--text-muted);
-      box-shadow: 0 4px 16px var(--shadow-light);
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
     }
 
     .rank-number {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: var(--light-gray);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 16px;
-      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 1.5rem;
+      line-height: 1;
     }
 
-    .rank-1 .rank-number { background: var(--text-primary); color: var(--white); }
-    .rank-2 .rank-number { background: var(--text-secondary); color: var(--white); }
-    .rank-3 .rank-number { background: var(--text-muted); color: var(--white); }
-
-    /* Responsividade */
-    @media (max-width: 768px) {
-      .podium-grid { grid-template-columns: 1fr; gap: 16px; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .podium-card {
+      transition: all 0.3s ease;
     }
 
-    /* Scrollbar minimalista */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--light-gray); }
-    ::-webkit-scrollbar-thumb { background: var(--border-gray); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    .podium-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .stats-card {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Dark mode styles */
+    html.dark {
+      background-color: #0f172a;
+      color: #e2e8f0;
+    }
+
+    html.dark .gradient-bg {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    }
+
+    html.dark .stats-card {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(51, 65, 85, 0.3);
+    }
+
+    html.dark .bg-white { background-color: #1e293b; color: #e2e8f0; }
+    html.dark .text-gray-900 { color: #e2e8f0; }
+    html.dark .text-gray-700 { color: #cbd5e0; }
+    html.dark .text-gray-600 { color: #a0aec0; }
+    html.dark .text-gray-500 { color: #718096; }
+    html.dark .border-gray-200 { border-color: #4a5568; }
+    html.dark .bg-gray-50 { background-color: #2d3748; }
+    html.dark .bg-gray-100 { background-color: #4a5568; }
   </style>
 </head>
-<body>
-  <div class="min-h-screen p-6">
-    <div class="max-w-6xl mx-auto space-y-12">
+
+<body class="gradient-bg min-h-screen">
+  <!-- Loading Indicator -->
+  <div id="loadingIndicator" class="fixed inset-0 bg-white bg-opacity-90 dark:bg-gray-900 dark:bg-opacity-90 flex items-center justify-center z-50">
+    <div class="flex flex-col items-center">
+      <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400 font-medium">Carregando ranking...</p>
+    </div>
+  </div>
+
+  <div class="min-h-screen p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
       
-      <!-- Header Minimalista -->
-      <div class="text-center space-y-6 fade-in">
-        <div class="space-y-2">
-          <h1 class="text-4xl md:text-5xl font-light tracking-tight" style="color: var(--text-primary);">
-            Ranking de Depósitos
-          </h1>
-          <p class="text-lg" style="color: var(--text-secondary);">
-            Análise de performance dos investidores
-          </p>
-        </div>
-      </div>
-
-      <!-- Filtros Minimalistas -->
-      <div class="card p-8 fade-in" style="animation-delay: 0.1s;">
-        <div class="space-y-6">
-          <div class="text-center">
-            <h2 class="text-xl font-medium mb-2" style="color: var(--text-primary);">Configurar Período</h2>
-            <p class="text-sm" style="color: var(--text-secondary);">Selecione o intervalo para análise</p>
-          </div>
+      <!-- Header -->
+      <div class="text-center mb-12 animate-fade-in">
+        <div class="flex items-center justify-between mb-6">
+          <a href="/" class="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            <span>Voltar ao Dashboard</span>
+          </a>
           
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="space-y-2">
-              <label for="startDate" class="block text-sm font-medium" style="color: var(--text-secondary);">
-                Data Início
-              </label>
-              <input type="date" id="startDate" class="input-minimal w-full" />
-            </div>
-            
-            <div class="space-y-2">
-              <label for="endDate" class="block text-sm font-medium" style="color: var(--text-secondary);">
-                Data Fim
-              </label>
-              <input type="date" id="endDate" class="input-minimal w-full" />
-            </div>
-            
-            <div class="space-y-2">
-              <label for="rankingType" class="block text-sm font-medium" style="color: var(--text-secondary);">
-                Tipo de Análise
-              </label>
-              <select id="rankingType" class="input-minimal w-full">
-                <option value="daily">Diário</option>
-                <option value="weekly">Semanal</option>
-                <option value="monthly">Mensal</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="text-center">
-            <button id="generateRankingBtn" class="btn-minimal px-8 py-3">
-              Gerar Ranking
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Loading Minimalista -->
-      <div id="loadingSection" class="hidden text-center py-16">
-        <div class="loading-dots mb-4">
-          <div></div>
-          <div></div>
-          <div></div>
-        </div>
-        <p class="text-sm" style="color: var(--text-secondary);">Processando dados...</p>
-      </div>
-
-      <!-- Estatísticas -->
-      <div id="statsSection" class="hidden fade-in">
-        <div class="stats-grid grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div class="card p-6 text-center">
-            <div class="text-2xl font-light mb-2" style="color: var(--text-primary);" id="totalAmount">-</div>
-            <div class="text-sm" style="color: var(--text-secondary);">Total Depositado</div>
-          </div>
-          
-          <div class="card p-6 text-center">
-            <div class="text-2xl font-light mb-2" style="color: var(--text-primary);" id="totalDeposits">-</div>
-            <div class="text-sm" style="color: var(--text-secondary);">Depósitos</div>
-          </div>
-          
-          <div class="card p-6 text-center">
-            <div class="text-2xl font-light mb-2" style="color: var(--text-primary);" id="totalUsers">-</div>
-            <div class="text-sm" style="color: var(--text-secondary);">Investidores</div>
-          </div>
-          
-          <div class="card p-6 text-center">
-            <div class="text-2xl font-light mb-2" style="color: var(--text-primary);" id="averagePerUser">-</div>
-            <div class="text-sm" style="color: var(--text-secondary);">Média por Usuário</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pódio Minimalista -->
-      <div id="podiumSection" class="hidden">
-        <div class="text-center mb-8">
-          <h2 class="text-2xl font-light mb-2" style="color: var(--text-primary);">Top 3 Investidores</h2>
-          <p class="text-sm" style="color: var(--text-secondary);">Maiores volumes do período</p>
+          <button id="themeToggle" class="p-3 rounded-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 card-shadow">
+            <i data-lucide="sun" class="w-5 h-5 light-icon"></i>
+            <i data-lucide="moon" class="w-5 h-5 dark-icon hidden"></i>
+          </button>
         </div>
         
-        <div class="podium-grid grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- 2º Lugar -->
-          <div class="md:order-1 md:mt-8 scale-in" style="animation-delay: 0.2s;">
-            <div class="card podium-second p-6 text-center">
-              <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                <span class="text-2xl font-light" style="color: var(--text-secondary);">2</span>
-              </div>
-              <div class="text-lg font-medium mb-1" style="color: var(--text-primary);" id="rank2Name">-</div>
-              <div class="text-sm mb-2" style="color: var(--text-secondary);" id="rank2Amount">-</div>
-              <div class="text-xs" style="color: var(--text-muted);" id="rank2Deposits">-</div>
+        <div class="mb-8">
+          <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+            🏆 Ranking de Depositantes
+          </h1>
+          <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Os maiores investidores da AsafeBroker no período selecionado
+          </p>
+        </div>
+
+        <!-- Period Filter -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 card-shadow max-w-md mx-auto">
+          <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Período de Análise</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Início</label>
+              <input type="date" id="startDate" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Fim</label>
+              <input type="date" id="endDate" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
           </div>
-          
-          <!-- 1º Lugar -->
-          <div class="md:order-2 scale-in" style="animation-delay: 0.1s;">
-            <div class="card-elevated podium-first p-8 text-center">
-              <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-900 flex items-center justify-center">
-                <span class="text-3xl font-light text-white">1</span>
-              </div>
-              <div class="text-xl font-medium mb-2" style="color: var(--text-primary);" id="rank1Name">-</div>
-              <div class="text-base mb-2" style="color: var(--text-secondary);" id="rank1Amount">-</div>
-              <div class="text-sm" style="color: var(--text-muted);" id="rank1Deposits">-</div>
-              <div class="mt-4 text-xs px-3 py-1 rounded-full" style="background: var(--light-gray); color: var(--text-secondary);">
-                Campeão
-              </div>
-            </div>
-          </div>
-          
-          <!-- 3º Lugar -->
-          <div class="md:order-3 md:mt-16 scale-in" style="animation-delay: 0.3s;">
-            <div class="card podium-third p-6 text-center">
-              <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                <span class="text-2xl font-light" style="color: var(--text-muted);">3</span>
-              </div>
-              <div class="text-lg font-medium mb-1" style="color: var(--text-primary);" id="rank3Name">-</div>
-              <div class="text-sm mb-2" style="color: var(--text-secondary);" id="rank3Amount">-</div>
-              <div class="text-xs" style="color: var(--text-muted);" id="rank3Deposits">-</div>
-            </div>
-          </div>
+          <button id="updateRanking" class="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+            Atualizar Ranking
+          </button>
         </div>
       </div>
 
-      <!-- Ranking Completo -->
-      <div id="rankingSection" class="hidden">
-        <div class="card p-8">
-          <div class="text-center mb-8">
-            <h2 class="text-2xl font-light mb-2" style="color: var(--text-primary);">Classificação Completa</h2>
-            <p class="text-sm" style="color: var(--text-secondary);">Posições 4 em diante</p>
-          </div>
-          
-          <div class="space-y-4" id="rankingList">
-            <!-- Lista será preenchida dinamicamente -->
-          </div>
+      <!-- Statistics Cards -->
+      <div id="statisticsCards" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 animate-slide-up">
+        <!-- Cards will be inserted here -->
+      </div>
+
+      <!-- Podium Section -->
+      <div class="mb-16 animate-scale-in">
+        <h2 class="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">🥇 Pódio dos Campeões</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto" id="podiumSection">
+          <!-- Podium cards will be inserted here -->
         </div>
       </div>
 
-      <!-- Gráfico Minimalista -->
-      <div id="chartSection" class="hidden">
-        <div class="card p-8">
-          <div class="text-center mb-8">
-            <h2 class="text-2xl font-light mb-2" style="color: var(--text-primary);">Evolução Temporal</h2>
-            <p class="text-sm" style="color: var(--text-secondary);">Top 5 investidores ao longo do período</p>
-          </div>
-          <div class="h-96">
-            <canvas id="evolutionChart"></canvas>
-          </div>
+      <!-- Full Ranking Table -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl card-shadow-lg overflow-hidden animate-fade-in">
+        <div class="p-8 border-b border-gray-200 dark:border-gray-700">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+            <i data-lucide="list" class="w-6 h-6 text-blue-600"></i>
+            Ranking Completo
+          </h2>
+          <p class="text-gray-600 dark:text-gray-400 mt-2">Todos os depositantes ordenados por valor total</p>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Posição</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Investidor</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">País</th>
+                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">Total Depositado</th>
+                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">Nº Depósitos</th>
+                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">Média por Depósito</th>
+              </tr>
+            </thead>
+            <tbody id="rankingTableBody" class="divide-y divide-gray-200 dark:divide-gray-700">
+              <!-- Table rows will be inserted here -->
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -385,247 +228,278 @@
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
 
-      // Elementos DOM
-      const generateRankingBtn = document.getElementById('generateRankingBtn');
-      const loadingSection = document.getElementById('loadingSection');
-      const statsSection = document.getElementById('statsSection');
-      const podiumSection = document.getElementById('podiumSection');
-      const rankingSection = document.getElementById('rankingSection');
-      const chartSection = document.getElementById('chartSection');
-      const startDate = document.getElementById('startDate');
-      const endDate = document.getElementById('endDate');
-      const rankingType = document.getElementById('rankingType');
+      // Theme management
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.classList.add(savedTheme);
+      updateThemeIcons();
 
-      // Configuração inicial
-      const today = new Date().toISOString().split('T')[0];
-      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      startDate.value = weekAgo;
-      endDate.value = today;
-
-      // Função para formatar valores
-      function formatCurrency(value) {
-        return new Intl.NumberFormat('pt-BR', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 2
-        }).format(value);
-      }
-
-      function formatNumber(value) {
-        return new Intl.NumberFormat('pt-BR').format(value);
-      }
-
-      // Função para carregar ranking
-      async function loadRanking() {
-        const params = new URLSearchParams({
-          startDate: startDate.value,
-          endDate: endDate.value,
-          type: rankingType.value
-        });
-
-        // Mostrar loading
-        hideAllSections();
-        loadingSection.classList.remove('hidden');
-
-        try {
-          const response = await fetch(`/ranking?${params}`);
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(data.error || 'Erro ao carregar ranking');
-          }
-
-          // Renderizar dados
-          renderStats(data.stats);
-          renderPodium(data.ranking);
-          renderRankingList(data.ranking);
-          renderChart(data.ranking);
-
-          // Mostrar seções com delay
-          loadingSection.classList.add('hidden');
-          setTimeout(() => statsSection.classList.remove('hidden'), 100);
-          setTimeout(() => podiumSection.classList.remove('hidden'), 200);
-          setTimeout(() => rankingSection.classList.remove('hidden'), 300);
-          setTimeout(() => chartSection.classList.remove('hidden'), 400);
-
-        } catch (error) {
-          console.error('Erro:', error);
-          alert('Erro ao carregar ranking: ' + error.message);
-          loadingSection.classList.add('hidden');
+      function updateThemeIcons() {
+        const lightIcon = document.querySelector('.light-icon');
+        const darkIcon = document.querySelector('.dark-icon');
+        if (document.documentElement.classList.contains('dark')) {
+          lightIcon.classList.add('hidden');
+          darkIcon.classList.remove('hidden');
+        } else {
+          lightIcon.classList.remove('hidden');
+          darkIcon.classList.add('hidden');
         }
       }
 
-      function hideAllSections() {
-        statsSection.classList.add('hidden');
-        podiumSection.classList.add('hidden');
-        rankingSection.classList.add('hidden');
-        chartSection.classList.add('hidden');
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        if (document.documentElement.classList.contains('light')) {
+          document.documentElement.classList.remove('light');
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+          localStorage.setItem('theme', 'light');
+        }
+        updateThemeIcons();
+      });
+
+      // Date initialization
+      const today = new Date().toISOString().split('T')[0];
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      document.getElementById('startDate').value = thirtyDaysAgo;
+      document.getElementById('endDate').value = today;
+
+      // Data fetching and rendering
+      async function fetchRankingData() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        loadingIndicator.classList.remove('hidden');
+
+        try {
+          const startDate = document.getElementById('startDate').value;
+          const endDate = document.getElementById('endDate').value;
+          
+          const response = await fetch(`/ranking-data?startDate=${startDate}&endDate=${endDate}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          renderStatistics(data.statistics);
+          renderPodium(data.ranking);
+          renderFullRanking(data.ranking);
+          
+        } catch (error) {
+          console.error('Erro ao buscar dados do ranking:', error);
+          alert('Erro ao carregar dados do ranking: ' + error.message);
+        } finally {
+          loadingIndicator.classList.add('hidden');
+        }
       }
 
-      function renderStats(stats) {
-        document.getElementById('totalAmount').textContent = formatCurrency(stats.total_amount);
-        document.getElementById('totalDeposits').textContent = formatNumber(stats.total_deposits);
-        document.getElementById('totalUsers').textContent = formatNumber(stats.total_users);
-        document.getElementById('averagePerUser').textContent = formatCurrency(stats.average_per_user);
+      function renderStatistics(stats) {
+        const container = document.getElementById('statisticsCards');
+        container.innerHTML = `
+          <div class="stats-card rounded-2xl p-6 text-center">
+            <div class="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full mx-auto mb-4">
+              <i data-lucide="dollar-sign" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">US$ ${stats.total_deposited.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</h3>
+            <p class="text-gray-600 dark:text-gray-400">Total Depositado</p>
+          </div>
+          
+          <div class="stats-card rounded-2xl p-6 text-center">
+            <div class="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full mx-auto mb-4">
+              <i data-lucide="trending-up" class="w-6 h-6 text-green-600 dark:text-green-400"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">${stats.total_deposits.toLocaleString('pt-BR')}</h3>
+            <p class="text-gray-600 dark:text-gray-400">Total de Depósitos</p>
+          </div>
+          
+          <div class="stats-card rounded-2xl p-6 text-center">
+            <div class="flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full mx-auto mb-4">
+              <i data-lucide="users" class="w-6 h-6 text-purple-600 dark:text-purple-400"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">${stats.total_users.toLocaleString('pt-BR')}</h3>
+            <p class="text-gray-600 dark:text-gray-400">Investidores Ativos</p>
+          </div>
+        `;
+        lucide.createIcons();
       }
 
       function renderPodium(ranking) {
-        // 1º Lugar
-        if (ranking[0]) {
-          document.getElementById('rank1Name').textContent = ranking[0].name;
-          document.getElementById('rank1Amount').textContent = formatCurrency(ranking[0].total_amount);
-          document.getElementById('rank1Deposits').textContent = `${formatNumber(ranking[0].total_deposits)} depósitos`;
-        }
-
-        // 2º Lugar
-        if (ranking[1]) {
-          document.getElementById('rank2Name').textContent = ranking[1].name;
-          document.getElementById('rank2Amount').textContent = formatCurrency(ranking[1].total_amount);
-          document.getElementById('rank2Deposits').textContent = `${formatNumber(ranking[1].total_deposits)} depósitos`;
-        }
-
-        // 3º Lugar
-        if (ranking[2]) {
-          document.getElementById('rank3Name').textContent = ranking[2].name;
-          document.getElementById('rank3Amount').textContent = formatCurrency(ranking[2].total_amount);
-          document.getElementById('rank3Deposits').textContent = `${formatNumber(ranking[2].total_deposits)} depósitos`;
-        }
-      }
-
-      function renderRankingList(ranking) {
-        const rankingList = document.getElementById('rankingList');
+        const container = document.getElementById('podiumSection');
         
-        rankingList.innerHTML = ranking.slice(3).map((user, index) => {
-          const position = index + 4;
-          const rankClass = position <= 3 ? `rank-${position}` : '';
-          
-          return `
-            <div class="rank-item ${rankClass} flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <div class="rank-number">${position}</div>
-                <div>
-                  <div class="font-medium text-base" style="color: var(--text-primary);">${user.name}</div>
-                  <div class="text-sm" style="color: var(--text-secondary);">${user.email}</div>
+        if (ranking.length === 0) {
+          container.innerHTML = '<p class="text-center text-gray-500 col-span-2">Nenhum dado encontrado para o período selecionado.</p>';
+          return;
+        }
+
+        const first = ranking[0];
+        const second = ranking[1];
+
+        let podiumHTML = '';
+
+        // First Place
+        if (first) {
+          podiumHTML += `
+            <div class="podium-card bg-white dark:bg-gray-800 rounded-3xl p-8 card-shadow-lg relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-24 h-24 trophy-gold rounded-full -mr-12 -mt-12 opacity-20"></div>
+              <div class="relative z-10">
+                <div class="flex items-center justify-between mb-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 trophy-gold rounded-full flex items-center justify-center">
+                      <span class="rank-number">1</span>
+                    </div>
+                    <div>
+                      <h3 class="text-xl font-bold text-gray-900 dark:text-white">🥇 Primeiro Lugar</h3>
+                      <p class="text-gray-600 dark:text-gray-400">Campeão dos Investimentos</p>
+                    </div>
+                  </div>
+                  <i data-lucide="crown" class="w-8 h-8 text-yellow-500"></i>
+                </div>
+                
+                <div class="space-y-4">
+                  <div>
+                    <h4 class="text-2xl font-bold text-gray-900 dark:text-white">${first.name}</h4>
+                    <p class="text-gray-600 dark:text-gray-400">${first.email}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-500">${first.country || 'N/A'}</p>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="text-center">
+                      <p class="text-2xl font-bold text-green-600 dark:text-green-400">US$ ${first.total_amount.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">Total Depositado</p>
+                    </div>
+                    <div class="text-center">
+                      <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">${first.deposit_count}</p>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">Depósitos</p>
+                    </div>
+                  </div>
+                  
+                  <div class="text-center pt-2">
+                    <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                      Média: US$ ${(first.total_amount / first.deposit_count).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div class="text-right">
-                <div class="font-medium text-lg" style="color: var(--text-primary);">${formatCurrency(user.total_amount)}</div>
-                <div class="text-sm" style="color: var(--text-secondary);">${formatNumber(user.total_deposits)} depósitos</div>
-                <div class="text-xs" style="color: var(--text-muted);">Média: ${formatCurrency(user.average_deposit)}</div>
+            </div>
+          `;
+        }
+
+        // Second Place
+        if (second) {
+          podiumHTML += `
+            <div class="podium-card bg-white dark:bg-gray-800 rounded-3xl p-8 card-shadow-lg relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-24 h-24 trophy-silver rounded-full -mr-12 -mt-12 opacity-20"></div>
+              <div class="relative z-10">
+                <div class="flex items-center justify-between mb-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 trophy-silver rounded-full flex items-center justify-center">
+                      <span class="rank-number">2</span>
+                    </div>
+                    <div>
+                      <h3 class="text-xl font-bold text-gray-900 dark:text-white">🥈 Segundo Lugar</h3>
+                      <p class="text-gray-600 dark:text-gray-400">Vice-Campeão</p>
+                    </div>
+                  </div>
+                  <i data-lucide="medal" class="w-8 h-8 text-gray-400"></i>
+                </div>
+                
+                <div class="space-y-4">
+                  <div>
+                    <h4 class="text-2xl font-bold text-gray-900 dark:text-white">${second.name}</h4>
+                    <p class="text-gray-600 dark:text-gray-400">${second.email}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-500">${second.country || 'N/A'}</p>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="text-center">
+                      <p class="text-2xl font-bold text-green-600 dark:text-green-400">US$ ${second.total_amount.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">Total Depositado</p>
+                    </div>
+                    <div class="text-center">
+                      <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">${second.deposit_count}</p>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">Depósitos</p>
+                    </div>
+                  </div>
+                  
+                  <div class="text-center pt-2">
+                    <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                      Média: US$ ${(second.total_amount / second.deposit_count).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
+          `;
+        }
+
+        container.innerHTML = podiumHTML;
+        lucide.createIcons();
+      }
+
+      function renderFullRanking(ranking) {
+        const tbody = document.getElementById('rankingTableBody');
+        
+        if (ranking.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Nenhum dado encontrado para o período selecionado.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = ranking.map((user, index) => {
+          const position = index + 1;
+          let positionDisplay = position.toString();
+          let positionClass = 'text-gray-600 dark:text-gray-400';
+          
+          if (position === 1) {
+            positionDisplay = '🥇 1º';
+            positionClass = 'text-yellow-600 font-bold';
+          } else if (position === 2) {
+            positionDisplay = '🥈 2º';
+            positionClass = 'text-gray-500 font-bold';
+          } else if (position === 3) {
+            positionDisplay = '🥉 3º';
+            positionClass = 'text-yellow-700 font-bold';
+          }
+
+          const average = user.total_amount / user.deposit_count;
+          
+          return `
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              <td class="px-6 py-4">
+                <span class="${positionClass} font-semibold">${positionDisplay}</span>
+              </td>
+              <td class="px-6 py-4">
+                <div>
+                  <div class="font-semibold text-gray-900 dark:text-white">${user.name}</div>
+                  <div class="text-sm text-gray-600 dark:text-gray-400">${user.email}</div>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
+                ${user.country || 'N/A'}
+              </td>
+              <td class="px-6 py-4 text-right">
+                <span class="font-bold text-green-600 dark:text-green-400">
+                  US$ ${user.total_amount.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <span class="font-semibold text-blue-600 dark:text-blue-400">
+                  ${user.deposit_count}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <span class="text-gray-700 dark:text-gray-300">
+                  US$ ${average.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                </span>
+              </td>
+            </tr>
           `;
         }).join('');
       }
 
-      function renderChart(ranking) {
-        const ctx = document.getElementById('evolutionChart').getContext('2d');
-        
-        // Pegar top 5 usuários
-        const top5 = ranking.slice(0, 5);
-        
-        // Cores minimalistas em tons de cinza
-        const colors = [
-          'rgba(33, 37, 41, 0.8)',     // Preto
-          'rgba(108, 117, 125, 0.8)',  // Cinza escuro
-          'rgba(173, 181, 189, 0.8)',  // Cinza médio
-          'rgba(206, 212, 218, 0.8)',  // Cinza claro
-          'rgba(233, 236, 239, 0.8)'   // Cinza muito claro
-        ];
-
-        // Obter todas as datas do período
-        const allDates = new Set();
-        top5.forEach(user => {
-          Object.keys(user.deposits_by_day).forEach(date => allDates.add(date));
-        });
-        
-        const sortedDates = Array.from(allDates).sort();
-        
-        const datasets = top5.map((user, index) => ({
-          label: user.name,
-          data: sortedDates.map(date => user.deposits_by_day[date] || 0),
-          borderColor: colors[index],
-          backgroundColor: colors[index].replace('0.8', '0.1'),
-          fill: false,
-          tension: 0.4,
-          pointRadius: 3,
-          pointHoverRadius: 5,
-          borderWidth: 2
-        }));
-
-        new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: sortedDates.map(date => new Date(date).toLocaleDateString('pt-BR')),
-            datasets: datasets
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { 
-                display: true,
-                labels: { 
-                  color: 'var(--text-secondary)',
-                  font: { size: 12, family: 'Inter' },
-                  usePointStyle: true,
-                  pointStyle: 'circle'
-                }
-              },
-              tooltip: {
-                mode: 'index',
-                intersect: false,
-                backgroundColor: 'var(--white)',
-                titleColor: 'var(--text-primary)',
-                bodyColor: 'var(--text-secondary)',
-                borderColor: 'var(--border-gray)',
-                borderWidth: 1,
-                callbacks: {
-                  label: function(context) {
-                    return `${context.dataset.label}: ${formatCurrency(context.parsed.y)}`;
-                  }
-                }
-              }
-            },
-            interaction: {
-              mode: 'nearest',
-              axis: 'x',
-              intersect: false
-            },
-            scales: {
-              y: { 
-                beginAtZero: true,
-                ticks: { 
-                  callback: val => formatCurrency(val),
-                  color: 'var(--text-muted)',
-                  font: { size: 11, family: 'Inter' }
-                },
-                grid: {
-                  color: 'var(--border-gray)',
-                  lineWidth: 1
-                }
-              },
-              x: { 
-                ticks: { 
-                  maxRotation: 45,
-                  color: 'var(--text-muted)',
-                  font: { size: 11, family: 'Inter' }
-                },
-                grid: {
-                  color: 'var(--border-gray)',
-                  lineWidth: 1
-                }
-              }
-            }
-          }
-        });
-      }
-
       // Event listeners
-      generateRankingBtn.addEventListener('click', loadRanking);
+      document.getElementById('updateRanking').addEventListener('click', fetchRankingData);
 
-      // Carregar ranking inicial
-      loadRanking();
+      // Initial load
+      fetchRankingData();
     });
   </script>
 </body>
