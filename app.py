@@ -3,6 +3,7 @@ import requests
 import os
 import logging
 from datetime import datetime, timedelta
+import pytz
 import json
 
 app = Flask(__name__)
@@ -89,19 +90,16 @@ def data():
 @app.route("/ranking-data")
 def ranking_data():
     try:
-        start_date = request.args.get("startDate")
-        end_date = request.args.get("endDate")
-        
-        # Se não fornecidas, usar o dia atual
-        if not start_date or not end_date:
-            today = datetime.now().strftime("%Y-%m-%d")
-            start_date = today
-            end_date = today
+        # Usar sempre o dia atual no horário de Brasília
+        brasilia_tz = pytz.timezone('America/Sao_Paulo')
+        today_brasilia = datetime.now(brasilia_tz).strftime("%Y-%m-%d")
+        start_date = today_brasilia
+        end_date = today_brasilia
     except Exception as e:
         logging.error(f"Erro ao processar datas: {e}")
         return jsonify({"error": "Erro ao processar datas"}), 400
 
-    logging.info(f"Requisição recebida para /ranking-data com período: {start_date} a {end_date}")
+    logging.info(f"Requisição recebida para /ranking-data com período: {start_date} a {end_date} (horário de Brasília)")
 
     # Coletar todos os depósitos aprovados no período (não influenciadores)
     all_deposits = {}
@@ -117,7 +115,7 @@ def ranking_data():
                 "page": current_page,
                 "pageSize": page_size,
                 "status": "APPROVED",
-                "isInfluencer": "false",  # Adicionar este parâmetro
+                "isInfluencer": "false",
                 "startDate": f"{start_date}T00:00:00.000Z",
                 "endDate": f"{end_date}T23:59:59.999Z",
                 "orderBy": "createdAt",
@@ -145,7 +143,6 @@ def ranking_data():
                         all_deposits[user_id] = {
                             "user_id": user_id,
                             "name": user_info.get("name", "N/A"),
-                            "email": user_info.get("email", "N/A"),
                             "country": user_info.get("country", "N/A"),
                             "total_amount": 0,
                             "deposit_count": 0,
@@ -181,25 +178,12 @@ def ranking_data():
     users_list = list(all_deposits.values())
     users_list.sort(key=lambda x: x["total_amount"], reverse=True)
     
-    # Calcular estatísticas gerais
-    total_deposited = sum(user["total_amount"] for user in users_list)
-    total_deposits = sum(user["deposit_count"] for user in users_list)
-    total_users = len(users_list)
-    
     # Pegar top 10 para o ranking
     top_users = users_list[:10]
     
     response_data = {
         "ranking": top_users,
-        "statistics": {
-            "total_deposited": total_deposited,
-            "total_deposits": total_deposits,
-            "total_users": total_users,
-            "period": {
-                "start": start_date,
-                "end": end_date
-            }
-        }
+        "date": today_brasilia
     }
     
     logging.info(f"Ranking gerado com {len(top_users)} usuários no top 10")
