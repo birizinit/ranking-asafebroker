@@ -92,9 +92,14 @@ def ranking_data():
     try:
         # Usar sempre o dia atual no horário de Brasília
         brasilia_tz = pytz.timezone('America/Sao_Paulo')
-        today_brasilia = datetime.now(brasilia_tz).strftime("%Y-%m-%d")
+        now_brasilia = datetime.now(brasilia_tz)
+        today_brasilia = now_brasilia.strftime("%Y-%m-%d")
         start_date = today_brasilia
         end_date = today_brasilia
+        
+        logging.info(f"Data/hora atual em Brasília: {now_brasilia}")
+        logging.info(f"Data para busca: {today_brasilia}")
+        
     except Exception as e:
         logging.error(f"Erro ao processar datas: {e}")
         return jsonify({"error": "Erro ao processar datas"}), 400
@@ -116,8 +121,8 @@ def ranking_data():
                 "pageSize": page_size,
                 "status": "APPROVED",
                 "isInfluencer": "false",
-                "startDate": f"{start_date}T00:00:00.000Z",
-                "endDate": f"{end_date}T23:59:59.999Z",
+                "startDate": f"{start_date}T00:00:00-03:00",  # Timezone de Brasília
+                "endDate": f"{end_date}T23:59:59-03:00",      # Timezone de Brasília
                 "orderBy": "createdAt",
                 "orderDirection": "DESC"
             }
