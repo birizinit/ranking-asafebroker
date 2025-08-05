@@ -92,17 +92,18 @@ def ranking_data():
         start_date = request.args.get("startDate")
         end_date = request.args.get("endDate")
         
-        # Se não fornecidas, usar últimos 30 dias
+        # Se não fornecidas, usar o dia atual
         if not start_date or not end_date:
-            end_date = datetime.now().strftime("%Y-%m-%d")
-            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+            today = datetime.now().strftime("%Y-%m-%d")
+            start_date = today
+            end_date = today
     except Exception as e:
         logging.error(f"Erro ao processar datas: {e}")
         return jsonify({"error": "Erro ao processar datas"}), 400
 
     logging.info(f"Requisição recebida para /ranking-data com período: {start_date} a {end_date}")
 
-    # Coletar todos os depósitos aprovados no período
+    # Coletar todos os depósitos aprovados no período (não influenciadores)
     all_deposits = {}
     current_page = 1
     page_size = 100
@@ -116,13 +117,14 @@ def ranking_data():
                 "page": current_page,
                 "pageSize": page_size,
                 "status": "APPROVED",
+                "isInfluencer": "false",  # Adicionar este parâmetro
                 "startDate": f"{start_date}T00:00:00.000Z",
                 "endDate": f"{end_date}T23:59:59.999Z",
                 "orderBy": "createdAt",
                 "orderDirection": "DESC"
             }
             
-            logging.info(f"Buscando página {current_page} para ranking")
+            logging.info(f"Buscando página {current_page} para ranking (não influenciadores)")
             response = requests.get(API_URL, headers=headers, params=params, timeout=20)
             response.raise_for_status()
             data = response.json()
