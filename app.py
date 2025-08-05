@@ -1,187 +1,334 @@
-import logging
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, render_template, request, jsonify
 import requests
-from datetime import datetime
-from collections import defaultdict
+import os
+import logging
+from datetime import datetime, timedelta
+import json
 
 app = Flask(__name__)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Token e URL da API externa
-API_TOKEN = 'seu_token_aqui'
-API_URL = 'https://hml-api.hackerexnova.com/api/deposit'
+API_URL = os.environ.get("API_URL", "https://api.asafebroker.com/admin-token/deposits")
+API_TOKEN = os.environ.get("API_TOKEN", "o7efkbcw58")
 
-# Página HTML básica
-HTML_PAGE = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Ranking de Depósitos</title>
-    <style>
-        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
-        h1 { color: #333; }
-        form, table { margin-top: 20px; }
-        label { display: block; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-        th { background: #eee; }
-    </style>
-</head>
-<body>
-    <h1>Ranking de Depósitos</h1>
-    <form method="get" action="/ranking">
-        <label>Data Início: <input type="date" name="start_date" required></label>
-        <label>Data Fim: <input type="date" name="end_date" required></label>
-        <label>Tipo de Ranking:
-            <select name="type">
-                <option value="daily">Diário</option>
-                <option value="weekly">Semanal</option>
-                <option value="monthly">Mensal</option>
-            </select>
-        </label>
-        <button type="submit">Gerar Ranking</button>
-    </form>
-    {% if ranking %}
-        <h2>Estatísticas Gerais</h2>
-        <p>Total de usuários: {{ stats.total_users }}</p>
-        <p>Total de depósitos: {{ stats.total_deposits }}</p>
-        <p>Total depositado: R$ {{ stats.total_amount | round(2) }}</p>
-        <p>Média por usuário: R$ {{ stats.average_per_user | round(2) }}</p>
-
-        <h2>Ranking</h2>
-        <table>
-            <tr>
-                <th>Posição</th>
-                <th>Nome</th>
-                <th>E-mail</th>
-                <th>Total Depositado</th>
-                <th>Nº de Depósitos</th>
-                <th>Média</th>
-            </tr>
-            {% for idx, user in enumerate(ranking, 1) %}
-            <tr>
-                <td>{{ idx }}</td>
-                <td>{{ user.name }}</td>
-                <td>{{ user.email }}</td>
-                <td>R$ {{ user.total_amount | round(2) }}</td>
-                <td>{{ user.total_deposits }}</td>
-                <td>R$ {{ user.average_deposit | round(2) }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% endif %}
-</body>
-</html>
-"""
-
-@app.route('/')
+@app.route("/")
 def index():
-    return render_template_string(HTML_PAGE)
+    logging.info("Servindo index.html")
+    return render_template("index.html")
 
-@app.route('/ranking', methods=['GET'])
+@app.route("/ranking")
 def ranking():
+    logging.info("Servindo ranking.html")
+    return render_template("ranking.html")
+
+@app.route("/data")
+def data():
     try:
-        start_date = request.args.get("start_date")
-        end_date = request.args.get("end_date")
-        ranking_type = request.args.get("type", "daily").lower()
+        page = int(request.args.get("page", 1))
+        page_size = int(request.args.get("pageSize", 25))
+        is_influencer = request.args.get("isInfluencer", "false").lower() == "true"
+        start_date = request.args.get("startDate")
+        end_date = request.args.get("endDate")
+        order_by = request.args.get("orderBy", "amount")
+        order_direction = request.args.get("orderDirection", "DESC")
+        status = request.args.get("status", "APPROVED")
+        search = request.args.get("search", "")
+    except ValueError as e:
+        logging.error(f"Erro de validação de parâmetro: {e}")
+        return jsonify({"error": "Parâmetros de requisição inválidos", "details": str(e)}), 400
 
-        if not start_date or not end_date:
-            return jsonify({"error": "Informe data de início e fim para gerar o ranking."}), 400
+    params = {
+        "page": page,
+        "pageSize": page_size,
+        "isInfluencer": str(is_influencer).lower(),
+        "startDate": start_date,
+        "endDate": end_date,
+        "orderBy": order_by,
+        "orderDirection": order_direction,
+        "status": status,
+    }
 
-        start = datetime.strptime(start_date, "%Y-%m-%d")
-        end = datetime.strptime(end_date, "%Y-%m-%d")
+    logging.info(f"Requisição recebida para /data com parâmetros: {params}")
 
+    try:
         headers = {"api-token": API_TOKEN}
-        params = {
-            "page": 1,
-            "pageSize": 1000,
-            "startDate": start_date,
-            "endDate": end_date,
-            "status": "APPROVED"
-        }
+        logging.info(f"Fazendo requisição para API externa: {API_URL} com params: {params}")
+        response = requests.get(API_URL, headers=headers, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        
+        # Aplicar filtro de pesquisa local se fornecido
+        if search and data.get("data"):
+            filtered_data = []
+            search_lower = search.lower()
+            for item in data["data"]:
+                user = item.get("user", {})
+                if (search_lower in user.get("name", "").lower() or
+                     search_lower in user.get("email", "").lower() or
+                    search_lower in item.get("method", "").lower() or
+                    search_lower in item.get("provider", "").lower()):
+                    filtered_data.append(item)
+            data["data"] = filtered_data
+            data["count"] = len(filtered_data)
+        
+        logging.info("Dados da API externa recebidos com sucesso.")
+        return jsonify(data)
+    except requests.exceptions.Timeout:
+        logging.error("Timeout ao conectar com a API externa.")
+        return jsonify({"error": "A API externa demorou muito para responder."}), 504
+    except requests.exceptions.ConnectionError as e:
+        logging.error(f"Erro de conexão com a API externa: {e}")
+        return jsonify({"error": "Não foi possível conectar à API externa."}), 503
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Erro ao buscar dados da API externa: {e}, Resposta: {response.text if 'response' in locals() else 'N/A'}")
+        return jsonify({"error": "Erro ao buscar dados da API externa", "details": str(e)}), 500
+    except Exception as e:
+        logging.critical(f"Erro inesperado no endpoint /data: {e}")
+        return jsonify({"error": "Ocorreu um erro inesperado no servidor."}), 500
 
-        all_deposits = []
-        current_page = 1
-        has_more = True
+@app.route("/ranking-data")
+def ranking_data():
+    try:
+        start_date = request.args.get("startDate")
+        end_date = request.args.get("endDate")
+        
+        # Se não fornecidas, usar últimos 30 dias
+        if not start_date or not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+    except Exception as e:
+        logging.error(f"Erro ao processar datas: {e}")
+        return jsonify({"error": "Erro ao processar datas"}), 400
 
-        while has_more:
-            params["page"] = current_page
-            response = requests.get(API_URL, headers=headers, params=params, timeout=15)
+    logging.info(f"Requisição recebida para /ranking-data com período: {start_date} a {end_date}")
+
+    # Coletar todos os depósitos aprovados no período
+    all_deposits = {}
+    current_page = 1
+    page_size = 100
+    has_more_data = True
+    
+    try:
+        headers = {"api-token": API_TOKEN}
+        
+        while has_more_data:
+            params = {
+                "page": current_page,
+                "pageSize": page_size,
+                "status": "APPROVED",
+                "startDate": f"{start_date}T00:00:00.000Z",
+                "endDate": f"{end_date}T23:59:59.999Z",
+                "orderBy": "createdAt",
+                "orderDirection": "DESC"
+            }
+            
+            logging.info(f"Buscando página {current_page} para ranking")
+            response = requests.get(API_URL, headers=headers, params=params, timeout=20)
             response.raise_for_status()
             data = response.json()
-
+            
             deposits = data.get("data", [])
-            total_count = data.get("count", 0)
-            all_deposits.extend(deposits)
-
-            if len(all_deposits) >= total_count:
-                has_more = False
-            else:
-                current_page += 1
-
-        # Agrupar por usuário
-        ranking_data = {}
-        for dep in all_deposits:
-            user = dep.get("user", {})
-            user_id = user.get("id")
-            if not user_id:
-                continue
-
-            name = user.get("name", "Desconhecido")
-            email = user.get("email", "")
-            amount = dep.get("amount", 0.0)
-            created_at = dep.get("createdAt")
-
-            try:
-                dt = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%fZ")
-            except ValueError:
-                dt = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%SZ")
-
-            if ranking_type == "weekly":
-                period_key = dt.strftime("%Y-%W")
-            elif ranking_type == "monthly":
-                period_key = dt.strftime("%Y-%m")
-            else:
-                period_key = dt.strftime("%Y-%m-%d")
-
-            if user_id not in ranking_data:
-                ranking_data[user_id] = {
-                    "id": user_id,
-                    "name": name,
-                    "email": email,
-                    "total_amount": 0,
-                    "total_deposits": 0,
-                    "deposits_by_day": defaultdict(float)
-                }
-
-            ranking_data[user_id]["total_amount"] += amount
-            ranking_data[user_id]["total_deposits"] += 1
-            ranking_data[user_id]["deposits_by_day"][period_key] += amount
-
-        # Processar lista
-        ranking_list = list(ranking_data.values())
-        for item in ranking_list:
-            item["average_deposit"] = (
-                item["total_amount"] / item["total_deposits"]
-                if item["total_deposits"] > 0 else 0
-            )
-
-        ranking_list.sort(key=lambda x: x["total_amount"], reverse=True)
-
-        stats = {
-            "total_amount": sum(u["total_amount"] for u in ranking_list),
-            "total_deposits": sum(u["total_deposits"] for u in ranking_list),
-            "total_users": len(ranking_list),
-            "average_per_user": (
-                sum(u["total_amount"] for u in ranking_list) / len(ranking_list)
-                if ranking_list else 0
-            )
-        }
-
-        return render_template_string(HTML_PAGE, ranking=ranking_list, stats=stats)
-
+            if not deposits:
+                has_more_data = False
+                break
+            
+            # Agrupar depósitos por usuário
+            for deposit in deposits:
+                user_info = deposit.get("user")
+                if user_info and user_info.get("id"):
+                    user_id = user_info["id"]
+                    amount = deposit.get("amount", 0)
+                    
+                    if user_id not in all_deposits:
+                        all_deposits[user_id] = {
+                            "user_id": user_id,
+                            "name": user_info.get("name", "N/A"),
+                            "email": user_info.get("email", "N/A"),
+                            "country": user_info.get("country", "N/A"),
+                            "total_amount": 0,
+                            "deposit_count": 0,
+                            "deposits": []
+                        }
+                    
+                    all_deposits[user_id]["total_amount"] += amount
+                    all_deposits[user_id]["deposit_count"] += 1
+                    all_deposits[user_id]["deposits"].append({
+                        "amount": amount,
+                        "date": deposit.get("approvedAt"),
+                        "method": deposit.get("method")
+                    })
+            
+            current_page += 1
+            
+            # Limite de segurança
+            if current_page > 100:
+                logging.warning("Limite de 100 páginas atingido para ranking")
+                break
+                
+    except requests.exceptions.Timeout:
+        logging.error("Timeout ao buscar dados para ranking")
+        return jsonify({"error": "Timeout ao buscar dados"}), 504
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Erro ao buscar dados para ranking: {e}")
+        return jsonify({"error": "Erro ao buscar dados", "details": str(e)}), 500
     except Exception as e:
-        logging.exception("Erro ao processar ranking")
-        return jsonify({"error": "Erro ao gerar ranking", "detalhes": str(e)}), 500
+        logging.critical(f"Erro inesperado no ranking: {e}")
+        return jsonify({"error": "Erro inesperado", "details": str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    # Converter para lista e ordenar por valor total
+    users_list = list(all_deposits.values())
+    users_list.sort(key=lambda x: x["total_amount"], reverse=True)
+    
+    # Calcular estatísticas gerais
+    total_deposited = sum(user["total_amount"] for user in users_list)
+    total_deposits = sum(user["deposit_count"] for user in users_list)
+    total_users = len(users_list)
+    
+    # Pegar top 10 para o ranking
+    top_users = users_list[:10]
+    
+    response_data = {
+        "ranking": top_users,
+        "statistics": {
+            "total_deposited": total_deposited,
+            "total_deposits": total_deposits,
+            "total_users": total_users,
+            "period": {
+                "start": start_date,
+                "end": end_date
+            }
+        }
+    }
+    
+    logging.info(f"Ranking gerado com {len(top_users)} usuários no top 10")
+    return jsonify(response_data)
+
+@app.route("/user-balances")
+def user_balances():
+    try:
+        page = int(request.args.get("page", 1))
+        page_size = int(request.args.get("pageSize", 25))
+        order_by = request.args.get("orderBy", "user.balance")
+        order_direction = request.args.get("orderDirection", "DESC")
+        search = request.args.get("search", "")
+    except ValueError as e:
+        logging.error(f"Erro de validação de parâmetro: {e}")
+        return jsonify({"error": "Parâmetros de requisição inválidos", "details": str(e)}), 400
+
+    logging.info(f"Requisição recebida para /user-balances com page={page}, pageSize={page_size}, orderBy={order_by}, orderDirection={order_direction}")
+
+    all_users_with_balances = {}
+    current_api_page = 1
+    external_api_page_size = 100
+    has_more_data = True
+    total_deposits_fetched = 0
+
+    try:
+        headers = {"api-token": API_TOKEN}
+        while has_more_data:
+            params = {
+                "page": current_api_page,
+                "pageSize": external_api_page_size,
+                "status": "APPROVED",
+                "orderBy": "createdAt",
+                "orderDirection": "DESC"
+            }
+            
+            logging.info(f"Fazendo requisição para API externa de depósitos para coletar saldos: {API_URL} com params: {params}")
+            response = requests.get(API_URL, headers=headers, params=params, timeout=20)
+            response.raise_for_status()
+            data = response.json()
+            deposits = data.get("data", [])
+            total_deposits_from_api = data.get("count", 0)
+            
+            if not deposits:
+                has_more_data = False
+                break
+            total_deposits_fetched += len(deposits)
+            
+            for deposit in deposits:
+                user_info = deposit.get("user")
+                if user_info and user_info.get("id"):
+                    user_id = user_info["id"]
+                    
+                    real_balance = None
+                    if user_info.get("wallets"):
+                        for wallet in user_info["wallets"]:
+                            if wallet.get("type") == "REAL":
+                                real_balance = wallet.get("balance")
+                                break
+
+                    if user_id not in all_users_with_balances:
+                        all_users_with_balances[user_id] = {
+                            "id": user_id,
+                            "name": user_info.get("name"),
+                            "email": user_info.get("email"),
+                            "nickname": user_info.get("nickname"),
+                            "phone": user_info.get("phone"),
+                            "country": user_info.get("country"),
+                            "lastLoginAt": user_info.get("lastLoginAt"),
+                            "user.balance": real_balance
+                        }
+                    elif all_users_with_balances[user_id].get("user.balance") is None and real_balance is not None:
+                        all_users_with_balances[user_id]["user.balance"] = real_balance
+
+            current_api_page += 1
+            
+            if total_deposits_fetched >= total_deposits_from_api and total_deposits_from_api > 0:
+                has_more_data = False
+            if current_api_page > 50:
+                logging.warning("Limite de 50 páginas da API externa atingido para coletar saldos de usuários.")
+                has_more_data = False
+
+    except requests.exceptions.Timeout:
+        logging.error("Timeout ao conectar com a API externa para coletar saldos.")
+        return jsonify({"error": "A API externa demorou muito para responder ao coletar saldos."}), 504
+    except requests.exceptions.ConnectionError as e:
+        logging.error(f"Erro de conexão com a API externa ao coletar saldos: {e}")
+        return jsonify({"error": "Não foi possível conectar à API externa para coletar saldos."}), 503
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Erro ao buscar dados da API externa para coletar saldos: {e}")
+        return jsonify({"error": "Erro ao buscar dados da API externa para coletar saldos", "details": str(e)}), 500
+    except Exception as e:
+        logging.critical(f"Erro inesperado no endpoint /user-balances: {e}")
+        return jsonify({"error": "Ocorreu um erro inesperado no servidor ao coletar saldos."}), 500
+
+    users_list = list(all_users_with_balances.values())
+    
+    # Aplicar filtro de pesquisa
+    if search:
+        search_lower = search.lower()
+        users_list = [user for user in users_list
+                      if search_lower in user.get("name", "").lower() or
+                         search_lower in user.get("email", "").lower() or
+                        search_lower in user.get("nickname", "").lower()]
+
+    # Ordenar os usuários
+    if order_by == "user.balance":
+        users_list.sort(key=lambda x: x.get("user.balance") if x.get("user.balance") is not None else (-float('inf') if order_direction == "ASC" else float('inf')),
+                       reverse=(order_direction == "DESC"))
+    elif order_by == "name":
+        users_list.sort(key=lambda x: x.get("name", "").lower(), reverse=(order_direction == "DESC"))
+    elif order_by == "lastLoginAt":
+        users_list.sort(key=lambda x: x.get("lastLoginAt", ""), reverse=(order_direction == "DESC"))
+
+    total_users = len(users_list)
+    
+    # Aplicar paginação
+    start_index = (page - 1) * page_size
+    end_index = start_index + page_size
+    paginated_users = users_list[start_index:end_index]
+
+    response_data = {
+        "data": paginated_users,
+        "currentPage": page,
+        "lastPage": (total_users + page_size - 1) // page_size,
+        "count": total_users
+    }
+
+    logging.info(f"Retornando {len(paginated_users)} usuários paginados com saldos.")
+    return jsonify(response_data)
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
