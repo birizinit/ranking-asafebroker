@@ -146,6 +146,26 @@
     .logo-hover:hover {
       transform: scale(1.05);
     }
+
+    .prize-badge {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 25px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .attention-alert {
+      animation: pulse-attention 2s infinite;
+    }
+
+    @keyframes pulse-attention {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
   </style>
 </head>
 
@@ -177,12 +197,12 @@
             <p class="text-xl text-gray-600 leading-relaxed mb-4">
               Os <strong>Top 10</strong> maiores investidores do dia
             </p>
-            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6">
-              <h3 class="text-lg font-bold text-blue-800 mb-2 flex items-center justify-center gap-2">
-                <i data-lucide="info" class="w-5 h-5"></i>
-                Regras de Participação
+            <div class="bg-red-50 border-2 border-red-300 rounded-2xl p-6 attention-alert">
+              <h3 class="text-lg font-bold text-red-800 mb-3 flex items-center justify-center gap-2">
+                <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600"></i>
+                ⚠️ ATENÇÃO - Regras de Participação
               </h3>
-              <p class="text-blue-700 font-medium">
+              <p class="text-red-700 font-bold text-lg">
                 Não ter efetuado saque nos últimos 7 dias
               </p>
             </div>
@@ -270,6 +290,7 @@
         const first = ranking[0];
         const second = ranking[1];
         const third = ranking[2];
+        const prizes = ['R$ 500,00', 'R$ 300,00', 'R$ 200,00'];
 
         let podiumHTML = '';
 
@@ -284,7 +305,10 @@
                     <span class="rank-number text-white">1</span>
                   </div>
                   <h3 class="text-2xl font-bold text-gray-800 mb-2">🥇 Primeiro Lugar</h3>
-                  <p class="text-gray-600 font-medium">Campeão dos Investimentos</p>
+                  <p class="text-gray-600 font-medium mb-3">Campeão dos Investimentos</p>
+                  <div class="prize-badge">
+                    🏆 PRÊMIO: R$ 500,00
+                  </div>
                 </div>
                 
                 <div class="space-y-6">
@@ -320,7 +344,10 @@
                     <span class="rank-number text-white">2</span>
                   </div>
                   <h3 class="text-2xl font-bold text-gray-800 mb-2">🥈 Segundo Lugar</h3>
-                  <p class="text-gray-600 font-medium">Vice-Campeão</p>
+                  <p class="text-gray-600 font-medium mb-3">Vice-Campeão</p>
+                  <div class="prize-badge">
+                    🥈 PRÊMIO: R$ 300,00
+                  </div>
                 </div>
                 
                 <div class="space-y-6">
@@ -356,7 +383,10 @@
                     <span class="rank-number text-white">3</span>
                   </div>
                   <h3 class="text-2xl font-bold text-gray-800 mb-2">🥉 Terceiro Lugar</h3>
-                  <p class="text-gray-600 font-medium">Terceiro Colocado</p>
+                  <p class="text-gray-600 font-medium mb-3">Terceiro Colocado</p>
+                  <div class="prize-badge">
+                    🥉 PRÊMIO: R$ 200,00
+                  </div>
                 </div>
                 
                 <div class="space-y-6">
