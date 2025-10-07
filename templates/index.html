@@ -212,9 +212,11 @@
 
       <!-- Podium Section -->
       <div class="mb-20 animate-scale-in">
-        <h2 class="text-4xl font-bold text-center text-gray-800 mb-16 tracking-tight">
-          🥇 <span class="bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">Pódio</span> dos Campeões
-        </h2>
+        <h2 class="text-4xl font-bold text-center text-gray-800 tracking-tight">
+  🥇 <span class="bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">Pódio</span> dos Campeões
+</h2>
+<p id="podiumDate" class="text-center text-gray-500 text-lg mb-16"></p>
+
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto" id="podiumSection">
           <!-- Podium cards will be inserted here -->
@@ -477,7 +479,16 @@
       // Initial load
       fetchRankingData();
     });
+
+    // Exibir data atual abaixo do título "Pódio dos Campeões"
+const podiumDate = document.getElementById('podiumDate');
+const hoje = new Date();
+const opcoes = { day: '2-digit', month: 'long', year: 'numeric' };
+const dataFormatada = hoje.toLocaleDateString('pt-BR', opcoes);
+podiumDate.textContent = `Atualizado em ${dataFormatada}`;
+
   </script>
 </body>
 </html>
+
 
