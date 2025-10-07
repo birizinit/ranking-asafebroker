@@ -12,6 +12,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 API_URL = os.environ.get("API_URL", "https://broker-api.mybroker.dev/admin-token/deposits")
 API_TOKEN = os.environ.get("API_TOKEN", "p3khoa2hyd")
 
+brasilia_tz = pytz.timezone('America/Sao_Paulo')
+timestamp = datetime.now(brasilia_tz).isoformat()
+
 @app.route("/")
 def index():
     logging.info("Servindo index.html")
@@ -113,7 +116,11 @@ def ranking_data():
     has_more_data = True
     
     try:
-        headers = {"api-token": API_TOKEN}
+       headers = {
+    "api-token": API_TOKEN,
+    "x-timestamp": timestamp,
+    "x-partner": "asafe"
+}
         
         while has_more_data:
             params = {
@@ -323,5 +330,6 @@ def user_balances():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+
 
 
