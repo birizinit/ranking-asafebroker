@@ -10,7 +10,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 API_URL = os.environ.get("API_URL", "https://broker-api.mybroker.dev/admin-token/deposits")
-API_TOKEN = os.environ.get("API_TOKEN", "o7efkbcw58")
+API_TOKEN = os.environ.get("API_TOKEN", "p3khoa2hyd")
 
 @app.route("/")
 def index():
@@ -323,4 +323,5 @@ def user_balances():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+
 
