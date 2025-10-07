@@ -12,18 +12,29 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 API_URL = os.environ.get("API_URL", "https://broker-api.mybroker.dev/admin-token/deposits")
 API_TOKEN = os.environ.get("API_TOKEN", "p3khoa2hyd")
 
-brasilia_tz = pytz.timezone('America/Sao_Paulo')
-timestamp = datetime.now(brasilia_tz).isoformat()
+
+def build_headers():
+    """Gera headers padrão com timestamp e partner."""
+    brasilia_tz = pytz.timezone('America/Sao_Paulo')
+    timestamp = datetime.now(brasilia_tz).isoformat()
+    return {
+        "api-token": API_TOKEN,
+        "x-timestamp": timestamp,
+        "x-partner": "asafe"
+    }
+
 
 @app.route("/")
 def index():
     logging.info("Servindo index.html")
     return render_template("index.html")
 
+
 @app.route("/ranking")
 def ranking():
     logging.info("Servindo ranking.html")
     return render_template("ranking.html")
+
 
 @app.route("/data")
 def data():
@@ -55,12 +66,12 @@ def data():
     logging.info(f"Requisição recebida para /data com parâmetros: {params}")
 
     try:
-        headers = {"api-token": API_TOKEN}
-        logging.info(f"Fazendo requisição para API externa: {API_URL} com params: {params}")
+        headers = build_headers()
+        logging.info(f"Fazendo requisição para API externa: {API_URL} com params: {params} e headers: {headers}")
         response = requests.get(API_URL, headers=headers, params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
-        
+
         # Aplicar filtro de pesquisa local se fornecido
         if search and data.get("data"):
             filtered_data = []
@@ -68,13 +79,13 @@ def data():
             for item in data["data"]:
                 user = item.get("user", {})
                 if (search_lower in user.get("name", "").lower() or
-                     search_lower in user.get("email", "").lower() or
+                    search_lower in user.get("email", "").lower() or
                     search_lower in item.get("method", "").lower() or
                     search_lower in item.get("provider", "").lower()):
                     filtered_data.append(item)
             data["data"] = filtered_data
             data["count"] = len(filtered_data)
-        
+
         logging.info("Dados da API externa recebidos com sucesso.")
         return jsonify(data)
     except requests.exceptions.Timeout:
@@ -90,67 +101,60 @@ def data():
         logging.critical(f"Erro inesperado no endpoint /data: {e}")
         return jsonify({"error": "Ocorreu um erro inesperado no servidor."}), 500
 
+
 @app.route("/ranking-data")
 def ranking_data():
     try:
-        # Usar sempre o dia atual no horário de Brasília
         brasilia_tz = pytz.timezone('America/Sao_Paulo')
         now_brasilia = datetime.now(brasilia_tz)
         today_brasilia = now_brasilia.strftime("%Y-%m-%d")
         start_date = today_brasilia
         end_date = today_brasilia
-        
+
         logging.info(f"Data/hora atual em Brasília: {now_brasilia}")
         logging.info(f"Data para busca: {today_brasilia}")
-        
+
     except Exception as e:
         logging.error(f"Erro ao processar datas: {e}")
         return jsonify({"error": "Erro ao processar datas"}), 400
 
     logging.info(f"Requisição recebida para /ranking-data com período: {start_date} a {end_date} (horário de Brasília)")
 
-    # Coletar todos os depósitos aprovados no período (não influenciadores)
     all_deposits = {}
     current_page = 1
     page_size = 100
     has_more_data = True
-    
+
     try:
-       headers = {
-    "api-token": API_TOKEN,
-    "x-timestamp": timestamp,
-    "x-partner": "asafe"
-}
-        
         while has_more_data:
+            headers = build_headers()
             params = {
                 "page": current_page,
                 "pageSize": page_size,
                 "status": "APPROVED",
                 "isInfluencer": "false",
-                "startDate": f"{start_date}T00:00:00-03:00",  # Timezone de Brasília
-                "endDate": f"{end_date}T23:59:59-03:00",      # Timezone de Brasília
+                "startDate": f"{start_date}T00:00:00-03:00",
+                "endDate": f"{end_date}T23:59:59-03:00",
                 "orderBy": "createdAt",
                 "orderDirection": "DESC"
             }
-            
+
             logging.info(f"Buscando página {current_page} para ranking (não influenciadores)")
             response = requests.get(API_URL, headers=headers, params=params, timeout=20)
             response.raise_for_status()
             data = response.json()
-            
+
             deposits = data.get("data", [])
             if not deposits:
                 has_more_data = False
                 break
-            
-            # Agrupar depósitos por usuário
+
             for deposit in deposits:
                 user_info = deposit.get("user")
                 if user_info and user_info.get("id"):
                     user_id = user_info["id"]
                     amount = deposit.get("amount", 0)
-                    
+
                     if user_id not in all_deposits:
                         all_deposits[user_id] = {
                             "user_id": user_id,
@@ -160,7 +164,7 @@ def ranking_data():
                             "deposit_count": 0,
                             "deposits": []
                         }
-                    
+
                     all_deposits[user_id]["total_amount"] += amount
                     all_deposits[user_id]["deposit_count"] += 1
                     all_deposits[user_id]["deposits"].append({
@@ -168,14 +172,12 @@ def ranking_data():
                         "date": deposit.get("approvedAt"),
                         "method": deposit.get("method")
                     })
-            
+
             current_page += 1
-            
-            # Limite de segurança
             if current_page > 100:
                 logging.warning("Limite de 100 páginas atingido para ranking")
                 break
-                
+
     except requests.exceptions.Timeout:
         logging.error("Timeout ao buscar dados para ranking")
         return jsonify({"error": "Timeout ao buscar dados"}), 504
@@ -186,20 +188,18 @@ def ranking_data():
         logging.critical(f"Erro inesperado no ranking: {e}")
         return jsonify({"error": "Erro inesperado", "details": str(e)}), 500
 
-    # Converter para lista e ordenar por valor total
     users_list = list(all_deposits.values())
     users_list.sort(key=lambda x: x["total_amount"], reverse=True)
-    
-    # Pegar top 10 para o ranking
     top_users = users_list[:10]
-    
+
     response_data = {
         "ranking": top_users,
         "date": today_brasilia
     }
-    
+
     logging.info(f"Ranking gerado com {len(top_users)} usuários no top 10")
     return jsonify(response_data)
+
 
 @app.route("/user-balances")
 def user_balances():
@@ -222,8 +222,8 @@ def user_balances():
     total_deposits_fetched = 0
 
     try:
-        headers = {"api-token": API_TOKEN}
         while has_more_data:
+            headers = build_headers()
             params = {
                 "page": current_api_page,
                 "pageSize": external_api_page_size,
@@ -231,24 +231,24 @@ def user_balances():
                 "orderBy": "createdAt",
                 "orderDirection": "DESC"
             }
-            
+
             logging.info(f"Fazendo requisição para API externa de depósitos para coletar saldos: {API_URL} com params: {params}")
             response = requests.get(API_URL, headers=headers, params=params, timeout=20)
             response.raise_for_status()
             data = response.json()
             deposits = data.get("data", [])
             total_deposits_from_api = data.get("count", 0)
-            
+
             if not deposits:
                 has_more_data = False
                 break
             total_deposits_fetched += len(deposits)
-            
+
             for deposit in deposits:
                 user_info = deposit.get("user")
                 if user_info and user_info.get("id"):
                     user_id = user_info["id"]
-                    
+
                     real_balance = None
                     if user_info.get("wallets"):
                         for wallet in user_info["wallets"]:
@@ -271,7 +271,6 @@ def user_balances():
                         all_users_with_balances[user_id]["user.balance"] = real_balance
 
             current_api_page += 1
-            
             if total_deposits_fetched >= total_deposits_from_api and total_deposits_from_api > 0:
                 has_more_data = False
             if current_api_page > 50:
@@ -292,27 +291,26 @@ def user_balances():
         return jsonify({"error": "Ocorreu um erro inesperado no servidor ao coletar saldos."}), 500
 
     users_list = list(all_users_with_balances.values())
-    
-    # Aplicar filtro de pesquisa
+
     if search:
         search_lower = search.lower()
         users_list = [user for user in users_list
                       if search_lower in user.get("name", "").lower() or
                          search_lower in user.get("email", "").lower() or
-                        search_lower in user.get("nickname", "").lower()]
+                         search_lower in user.get("nickname", "").lower()]
 
-    # Ordenar os usuários
     if order_by == "user.balance":
-        users_list.sort(key=lambda x: x.get("user.balance") if x.get("user.balance") is not None else (-float('inf') if order_direction == "ASC" else float('inf')),
-                       reverse=(order_direction == "DESC"))
+        users_list.sort(
+            key=lambda x: x.get("user.balance") if x.get("user.balance") is not None else (-float('inf') if order_direction == "ASC" else float('inf')),
+            reverse=(order_direction == "DESC")
+        )
     elif order_by == "name":
         users_list.sort(key=lambda x: x.get("name", "").lower(), reverse=(order_direction == "DESC"))
     elif order_by == "lastLoginAt":
         users_list.sort(key=lambda x: x.get("lastLoginAt", ""), reverse=(order_direction == "DESC"))
 
     total_users = len(users_list)
-    
-    # Aplicar paginação
+
     start_index = (page - 1) * page_size
     end_index = start_index + page_size
     paginated_users = users_list[start_index:end_index]
@@ -327,9 +325,7 @@ def user_balances():
     logging.info(f"Retornando {len(paginated_users)} usuários paginados com saldos.")
     return jsonify(response_data)
 
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
-
-
-
